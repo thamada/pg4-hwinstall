@@ -1,0 +1,261 @@
+\section{はじめに}
+\label{pci64RegMap}
+
+\begin{Desc}
+\item[Author: ]\par
+Tsuyoshi Hamada,
+Time-stamp: <2006-10-02 20:45:27 hamada>
+\end{Desc}
+
+ 
+本製品を使用する前に知っておいていただきたい事を説明しています．
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\subsection{IFPGA 内部ブロック図}
+%\begin{figure}[h]
+%\begin{minipage}[b]{1.0\linewidth}\centering
+%  \centerline{\epsfig{file=fig/ifpga.eps,width=180mm}}
+%\end{minipage}
+%\caption{IFPGA 内部ブロック図}
+%\label{fig:pci64RegMap:1}
+%\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{PROGRAPE-4}
+
+PROGRAPE-4とは本製品の名称です．PROGRAPE-4は，いわゆるパソコンやワーク
+ステーションに接続して使用する計算付加ボードと呼ばれるものの一種です．
+他の計算付加ボードとの大きな違いは計算用のデバイスにフィールド・プログ
+ラマブル・ゲートアレイ(Field Programmable Gate Array :FPGA エフピージー
+エー)を用いていることです．FPGAとは内部論理回路を製造後に書き換えるこ
+とが可能なプログラマブルデバイスのもっとも広く使われているものです．
+
+
+
+
+%------------------------------------------------------- BAR0
+\begin{tabular}{c|c|c|}
+        \multicolumn{3}{l}{Base Address 0}    \\
+\hline
+    0x000000    & & \\
+                & 制御レジスタ用 & 32-bit アクセス \\
+                & 256 Byte & \\
+    0x0000FC    & & \\
+\hline
+\end{tabular}
+
+
+
+%------------------------------------------------------- BAR1
+\begin{tabular}{c|c|c|}
+        \multicolumn{3}{l}{Base Address 1}    \\
+\hline
+    0x000000    & & \\
+                & データ転送用 & 32-bit / 64-bit アクセス \\
+                & 16 MByte & \\
+    0xFFFFFC    & & \\
+\hline
+\end{tabular}
+
+
+
+メモリ空間としては16 MByte存在するが、実際にはVirtex2-1000のブロックRAMに32 KBit分を実装するため，4 KByte(Address=0x1000)単位に写像が見える．
+64 bitアクセスする場合は，アドレス指定は8 Byte境界とする。
+32 bitアクセスする場合は，アドレス指定は4 Byte境界とする。
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{PCIコンフィグレーションレジスタ}
+
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+項目               & offseet & Byte数 & 値 & 備考 \\
+\hline
+Vendor ID          & 0x00    & 2      & 0x11DB   & SEGAのIDをご拝借 \\
+Device ID          & 0x02    & 2      & 0x0005   &                  \\
+Revision ID        & 0x08    & 1      & 0x00     &                  \\
+Class Code         & 0x09    & 3      & 0xFF0000 & その他のデバイス \\
+Base Address 0     & 0x10    & 4      &          & 256 Byte         \\
+Base Address 1     & 0x14    & 4      &          & 16 MByte         \\
+Base Address 2     & 0x18    & 4      &          & 未使用           \\
+Interrupt Pin      & 0x3d    & 1      & 0x01     & INTA\#           \\
+Min GRANT          & 0x3e    & 1      & 0xFF     &                  \\
+Max latency        & 0x3f    & 1      & 0x00     &                  \\
+\hline
+\end{tabular}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{BASE ADDRESS0 -- 制御レジスタ}
+
+\subsubsection{BUSY\_LOCAL\_READ (0x00)}%--------------------------------------
+\begin{tabular}{|c|c|c|c|}
+\hline
+ビット& 機能 & 方向 & 初期値 \\
+\hline
+31:0 & ボード内部バス状態 & R & 0x0\\
+\hline
+\end{tabular}
+
+
+\subsubsection{PFPGA\_RST (0x04)}%---------------------------------------------
+\begin{tabular}{|c|c|c|c|}
+\hline
+ビット& 機能 & 方向 & 初期値 \\
+\hline
+7:0 & PFPGAリセット信号(Active-High)制御 & W & - \\
+\hline
+\end{tabular}
+
+\subsubsection{INT\_STAT (0x10)}%----------------------------------------------
+\begin{tabular}{|c|c|c|c|}
+\hline
+ビット& 機能 & 方向 & 初期値 \\
+\hline
+31:4 & Reserved & R & 0x0 \\
+   3 & USER Interrupt(未使用) & R/W & 0x0 \\
+   2 & USER Interrupt(未使用) & R/W & 0x0 \\
+   1 & USER Interrupt(未使用) & R/W & 0x0 \\
+   0 & End of DMA             & R/W & 0x0 \\
+\hline
+\end{tabular}
+
+Read時は，割り込み要因のステータスを表示する．
+Write時は，「0: 割り込み要因クリア」，「1: 変化なし」．
+
+
+\subsubsection{INT\_MASK (0x14)}%----------------------------------------------
+\begin{tabular}{|c|c|c|c|}
+\hline
+ビット& 機能 & 方向 & 初期値 \\
+\hline
+31:4 & Reserved & R & 0x0 \\
+   3 & USER Interrupt Mask(未使用) & R/W & 0x0 \\
+   2 & USER Interrupt Mask(未使用) & R/W & 0x0 \\
+   1 & USER Interrupt Mask(未使用) & R/W & 0x0 \\
+   0 & End of DMA Interrupt Mask   & R/W & 0x0 \\
+\hline
+\end{tabular}
+
+
+割り込み要因のマスク設定レジスタ．
+「0:割り込みマスク」「1:割り込み許可」 
+
+
+\subsubsection{DMA\_PCI\_ADRS (0x20)}%-----------------------------------------
+\begin{tabular}{|c|c|c|c|}
+\hline
+ビット& 機能 & 方向 & 初期値 \\
+\hline
+31:2 & DMA PCI ADRS [31:2] & R/W & 0x0 \\
+ 1:0 & ``00''固定          & R & 0x0 \\
+\hline
+\end{tabular}
+
+イニシエータ動作によるDMA転送のPCIバス側アドレスを指定する．
+64-bit転送を行う場合は，第3ビットが常にゼロ(つまりDMA PCI ADRS[2]=0)でなければならない．
+
+
+\subsubsection{DMA\_LOCAL\_ADRS (0x24)}%---------------------------------------
+\begin{tabular}{|c|c|c|c|}
+\hline
+ビット& 機能 & 方向 & 初期値 \\
+\hline
+31:24 & Reserved             & R   & 0x0 \\
+23:2  & DMA LOCAL ADRS[23:2] & R/W & 0x0 \\
+ 1:0  & ``00''固定           & R   & 0x0 \\
+\hline
+\end{tabular}
+
+イニシエータ動作によるDMA転送の基板側アドレスを設定する．
+64-bit転送を行う場合は，第3ビットが常にゼロ(つまりDMA LOCAL ADRS[2]=0)でなければならない．
+
+
+
+\subsubsection{DMA\_COUNT (0x28)}%---------------------------------------------
+\begin{tabular}{|c|c|c|c|}
+\hline
+ビット& 機能 & 方向 & 初期値 \\
+\hline
+31:24 & Reserved              & R   & 0x0 \\
+23:2  & DMA転送バイト数[23:2] & R/W & 0x0 \\
+ 1:0  & ``00''固定            & R   & 0x0 \\
+\hline
+\end{tabular}
+
+イニシエータ動作によるDMA転送の転送バイト数を設定する．
+64-bit転送を行う場合は，第3ビットが常にゼロ(つまりDMAバイト数[2]=0)でなければならない．
+
+
+\subsubsection{DMA\_CTRL (0x2C)}%---------------------------------------------
+\begin{tabular}{|c|c|c|c|}
+\hline
+ビット& 機能 & 方向 & 初期値 \\
+\hline
+31:5 & Reserved                                    & R   & 0x0 \\
+   4 & DMA Direction (0:LOCAL→PCI / 1:PCI→LOCAL) & R/W & 0x0 \\
+ 3:2 & DMA Mode                                    & R/W & 0x0 \\
+   1 & DMA 64/32 (1:64-bit/0:32-bit)               & R/W & 0x0 \\
+   0 & DMA Start/Stop (1:Start / 0:Stop)           & R/W & 0x0 \\
+\hline
+\end{tabular}
+
+「DMA Direction」は転送方向を指定する．
+DMA Modeは実行するPCIコマンドを指定する．
+
+\begin{itemize}
+\item[] Read 時(DMA Direction = 1)
+  \begin{itemize}
+  \item[]  ``01'':メモリリード 
+  \item[]  ``11'':メモリリードライン
+  \item[]  ``10'':メモリリードマルチプル
+  \end{itemize}
+
+\item[] Write時(DMA Direction = 0)
+  \begin{itemize}
+  \item[]  ``01'':メモリライト 
+  \item[]  ``11'':メモリライトアンドインバリデート
+  \end{itemize}
+\end{itemize}
+
+DMA 64/32は転送ビット幅(64-bit転送，もしくは32-bit転送)を指定する．
+ただし，64-bit転送を実行しても，実際に行われる転送はPCI側のACK64による．
+
+DMA Start/Stopは，'1'をWrite時にDMA転送を起動する．
+'0'をWriteで起動中のDMA転送を中止する．
+(この時End of DMA割り込み発生しない)．
+Read時は実行中フラグ('1')を表示する．
+
+\subsubsection{DMA\_INTERVAL (0x30)}%---------------------------------------------
+\begin{tabular}{|c|c|c|c|}
+\hline
+ビット& 機能 & 方向 & 初期値 \\
+\hline
+31:16 & DMA Length                               & R/W & 0x0 \\
+ 15:0 & DMA Interval                             & R/W & 0x0 \\
+\hline
+\end{tabular}
+
+DMA Lengthは1回のバストランザクションで転送するバースト長の制限値をクロック数で指定する．
+DMA Length=0の場合はバースト長無制限を意味する．
+
+DMA Intervalは，Disconnect/Retry時に，次のバストランザクション開始までの時間をクロック数で指定する．
+
+
+\subsubsection{DMA\_STAT (0x34)}%---------------------------------------------
+\begin{tabular}{|c|c|c|c|}
+\hline
+ビット& 機能 & 方向 & 初期値 \\
+\hline
+31:16 & Disconnect Count                         & R & 0x0 \\
+ 15:0 & Retry Count                              & R & 0x0 \\
+\hline
+\end{tabular}
+
+Disconnect Count / Retry Countは，DMAの起動じにゼロにリセットされ，
+DMA転送の完了までの間に発生したDisconnect/Retryの回数をカウントする．
+オーバーフローする時は0xFFFFを表示する．
+

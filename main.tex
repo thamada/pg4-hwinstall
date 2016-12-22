@@ -1,0 +1,64 @@
+%Time-stamp: <2006-10-03 18:11:21 hamada>
+
+\documentclass[a4paper,fleqn]{jarticle}
+\usepackage{amsmath}
+\usepackage{epsfig}
+\usepackage{a4wide}
+\usepackage{makeidx}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{alltt}
+\usepackage{times}
+\ifx\pdfoutput\undefined
+\usepackage[ps2pdf,
+            pagebackref=true,
+            colorlinks=true,
+            linkcolor=blue
+           ]{hyperref}
+\else
+\usepackage[pdftex,
+            pagebackref=true,
+            colorlinks=true,
+            linkcolor=blue
+           ]{hyperref}
+\fi
+\usepackage{doxygen}
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+
+\setlength{\textheight}{232mm}
+
+\makeindex
+\setcounter{tocdepth}{1}
+%% \setlength{\footrulewidth}{0.4pt}
+\begin{document}
+\begin{titlepage}
+\vspace*{7cm}
+\begin{center}
+{\Large PROGRAPE-4 取り扱い説明書}\\
+\vspace*{1cm}
+{\large 濱田 剛}\\
+{\small {\bf hamada@progrape.jp}}\\
+\vspace*{0.5cm}
+{\small Tue Oct  3 2006 : Tsuyoshi Hamada}\\
+{\small Tue Oct  2 2006 : Tsuyoshi Hamada}\\
+\end{center}
+\end{titlepage}
+\pagenumbering{roman}
+\tableofcontents
+\pagenumbering{arabic}
+
+\clearpage
+\input{Hajimeni}
+
+\clearpage
+\input{Hwinstall}
+
+\clearpage
+\input{Hosoku}
+
+
+\printindex
+\end{document}
+
